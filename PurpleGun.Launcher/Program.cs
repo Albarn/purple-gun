@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 
@@ -6,7 +7,12 @@ namespace PurpleGun.Launcher
 {
     class Program
     {
-        private const int FileCapacity = 16 * 1024 * 1024;
+        private static readonly int FileCapacity;
+
+        static Program()
+        {
+            FileCapacity = int.Parse(ConfigurationManager.AppSettings[nameof(FileCapacity)]);
+        }
 
         static void Main(string[] args)
         {
@@ -18,7 +24,7 @@ namespace PurpleGun.Launcher
 
             using (var map = MemoryMappedFile.CreateFromFile(args[0], FileMode.OpenOrCreate, args[1], FileCapacity))
             {
-                Console.WriteLine("File map created. Press Enter to finish.");
+                Console.Write("File map created. Press Enter to finish.");
                 Console.ReadLine();
             }
         }

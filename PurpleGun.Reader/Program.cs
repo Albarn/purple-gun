@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Text;
@@ -7,8 +8,16 @@ namespace PurpleGun.Reader
 {
     class Program
     {
-        private const int FileCapacity = 16 * 1024 * 1024;
-        private const int MaxValue = 100;
+        private static readonly int FileCapacity;
+        private static readonly int MaxValue;
+        private static readonly int LineSize;
+
+        static Program()
+        {
+            FileCapacity = int.Parse(ConfigurationManager.AppSettings[nameof(FileCapacity)]);
+            MaxValue = int.Parse(ConfigurationManager.AppSettings[nameof(MaxValue)]);
+            LineSize = int.Parse(ConfigurationManager.AppSettings[nameof(LineSize)]);
+        }
 
         static void Main(string[] args)
         {
@@ -25,7 +34,7 @@ namespace PurpleGun.Reader
                 var f = new Random();
                 var line = GetBytes(0);
                 var step = sizeof(byte) * line.Length;
-                for (long i = 0; i < reader.BaseStream.Length; i += step)
+                for (long i = 0; i + step < FileCapacity && i + step < reader.BaseStream.Length; i += step)
                 {
                     var num = int.Parse(reader.ReadLine());
                     accessor.ReadArray(i, line, 0, line.Length);
@@ -43,7 +52,8 @@ namespace PurpleGun.Reader
 
         private static byte[] GetBytes(int num)
         {
-            return Encoding.ASCII.GetBytes(num.ToString().PadLeft(3) + '\n');
+            num %= MaxValue;
+            return Encoding.ASCII.GetBytes(num.ToString().PadLeft(LineSize) + '\n');
         }
 
         private static int GetInteger(byte[] line)
